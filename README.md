@@ -1,91 +1,69 @@
-# Mega 2560 + WiFi ESP8266EX — ESP-AT 2.3.0.0 Adaptation
+# Mega 2560 + WiFi ESP8266EX — ESP-AT 2.3.0.0 Hardware Adaptation
 
-**BIOSECHP | Verified Technical Procedure — Single-Board Validation**
+**BIOSECHP | Technical integration and experimental validation**
 
 [Español](#español) · [English](#english)
 
-> **Status:** Technical documentation draft. Tested on one Arduino Mega 2560 + WiFi ESP8266EX combined board. This project is not an official Espressif release. The exact hardware revision has not yet been identified. Compatibility with other board revisions is not guaranteed.
+> **Project scope:** A configuration adaptation of Espressif's official ESP-AT 2.3.0.0 firmware, experimentally validated on one Arduino Mega 2560 + WiFi ESP8266EX combined board. This is an independent integration report, **not an official Espressif release**. Results must not be generalized to unverified board revisions.
 
 ---
 
 ## Español
 
-### 1. Resumen
+### 1. Presentación
 
-Este repositorio documenta la adaptación de una **imagen oficial Espressif ESP-AT 2.3.0.0 para ESP8266**, utilizada en una tarjeta combinada **Arduino Mega 2560 + WiFi ESP8266EX**, así como las pruebas realizadas para comprobar su funcionamiento y la comunicación UART con el microcontrolador ATmega2560.
+BIOSECHP documenta la adaptación de configuración de una **imagen oficial ESP-AT 2.3.0.0 de Espressif** para una tarjeta combinada **Arduino Mega 2560 + WiFi ESP8266EX**, así como los resultados de su verificación experimental.
 
-**No se desarrolló un firmware nuevo.** Se utilizaron archivos y herramientas oficiales de Espressif, adaptando los parámetros UART y la configuración de la cabecera de memoria flash.
+El objetivo fue actualizar el firmware AT del ESP8266 y comprobar que el módulo continuara operando tanto por su interfaz serie como a través de la comunicación interna con el **ATmega2560**.
 
-La contribución técnica de **BIOSECHP** consiste en documentar la adaptación específica, el procedimiento empleado, las verificaciones de integridad y los resultados experimentales obtenidos sobre una tarjeta física.
+**No se desarrolló un firmware nuevo ni se modificó el código funcional de ESP-AT.** El trabajo consistió en adaptar parámetros de comunicación UART y la cabecera de configuración de la memoria flash, utilizando herramientas y archivos oficiales de Espressif, y verificar el resultado en hardware real.
 
-### 2. Hardware verificado
+### 2. Plataforma evaluada
 
-- Microcontrolador ATmega2560.
-- Microcontrolador WiFi ESP8266EX.
-- Tarjeta combinada Arduino Mega 2560 + WiFi ESP8266EX.
-- Convertidor USB-serie CH340.
-- Puerto de comunicación identificado durante las pruebas como COM16 (puede variar entre computadores).
-- Memoria flash SPI de 4 MiB, identificada mediante el chip marcado `25VQ32`.
-- Selector UART `RXD0/TXD0` / `RXD3/TXD3`.
-- Banco de ocho interruptores DIP.
-- Firmware original identificado mediante `AT+GMR`: `AT version:1.1.0.0`.
+- Tarjeta integrada con microcontroladores **ATmega2560** y **ESP8266EX**.
+- Convertidor USB-serie **CH340**; durante las pruebas Windows lo identificó como **COM16** (número dependiente del equipo).
+- Memoria flash SPI identificada por la marca **`25VQ32`**, con capacidad de **4 MiB**.
+- Banco de **ocho interruptores DIP** y selector UART rotulado **`RXD0/TXD0` / `RXD3/TXD3`**.
+- Firmware AT original reportado por `AT+GMR`: **`AT version:1.1.0.0`**.
 
-**Alcance:** las pruebas descritas corresponden a una unidad física. La identificación comercial genérica de la tarjeta no garantiza que otras revisiones utilicen las mismas conexiones internas.
+La revisión exacta de la placa de circuito impreso (PCB) **no se ha identificado**. Por ello, las configuraciones descritas se refieren a la unidad ensayada y no constituyen una matriz universal de compatibilidad.
 
-### 3. Procedimiento de adaptación
+### 3. Adaptación realizada
 
-El procedimiento realizado comprendió las siguientes etapas:
+Se efectuaron las siguientes operaciones, conservando un respaldo verificable antes de programar:
 
-1. Identificar el microcontrolador ESP8266EX y su memoria flash SPI de 4 MiB.
+1. Identificación del ESP8266EX y de la memoria flash SPI de **4 MiB**.
+2. Lectura de los **4 MiB** del dispositivo original y verificación del respaldo frente a la memoria física mediante `esptool verify-flash`.
+3. Obtención de la distribución oficial **ESP-AT 2.3.0.0 para ESP8266**, incluida la imagen factory para **ESP-WROOM-02**, y de las herramientas de la rama **`release/v2.3.0.0_esp8266`** de ESP-AT.
+4. Generación de parámetros con la herramienta oficial para el perfil **`WROOM-02-N`**: **TX GPIO1**, **RX GPIO3**, y control de flujo **CTS/RTS deshabilitado**.
+5. Sustitución del bloque de parámetros de **4.096 bytes** en el desplazamiento **`0xF1000`** de una copia de la imagen factory oficial de **2 MiB**.
+6. Preparación de la variante con cabecera de arranque para memoria flash **DOUT a 40 MHz**.
+7. Escritura de la imagen adaptada a partir de **`0x0`**, con verificación reportada por la herramienta de programación.
+8. Validación del arranque y de la comunicación con comandos AT, búsqueda de redes WiFi y pruebas UART a través del ATmega2560.
 
-2. Obtener una copia completa del firmware original de la tarjeta y verificarla frente al dispositivo físico mediante `esptool verify-flash`.
+**Advertencia de compatibilidad:** este resumen documenta un procedimiento ejecutado satisfactoriamente en una unidad específica. Antes de reproducirlo en otra tarjeta deben comprobarse la revisión de PCB, el cableado UART, la capacidad de flash, la configuración de arranque y la posibilidad de restaurar un respaldo. Un binario inadecuado puede impedir que el ESP8266 arranque.
 
-3. Obtener la distribución oficial **ESP-AT 2.3.0.0 para ESP8266**, incluida la imagen precompilada para ESP-WROOM-02.
+### 4. Resultados de validación
 
-4. Obtener las herramientas oficiales de Espressif y utilizar la rama `release/v2.3.0.0_esp8266` del repositorio ESP-AT.
-
-5. Generar los parámetros correspondientes al perfil `WROOM-02-N`, configurado con:
-
-   - UART TX: GPIO1.
-   - UART RX: GPIO3.
-   - Control de flujo CTS/RTS desactivado.
-
-6. Sustituir el bloque de parámetros de **4096 bytes** en el desplazamiento `0xF1000` de una copia de la imagen factory oficial de 2 MiB.
-
-7. Preparar la imagen adaptada utilizando el modo de memoria flash **DOUT a 40 MHz**.
-
-8. Grabar la imagen en el desplazamiento `0x0` de la memoria flash del ESP8266.
-
-9. Verificar la escritura mediante la herramienta de programación y comprobar el arranque con comandos AT.
-
-10. Realizar pruebas de comunicación con el ATmega2560 mediante `Serial3`.
-
-**Precaución:** este procedimiento describe una adaptación comprobada en una unidad. No debe aplicarse indiscriminadamente a otras tarjetas sin verificar previamente la revisión del hardware, el tamaño de la memoria, las conexiones UART y los parámetros de arranque.
-
-### 4. Resultados experimentales
-
-| Prueba | Resultado |
+| Ensayo | Resultado |
 |---|---|
-| Programación del ATmega2560 mediante Blink | PASS |
-| Comunicación USB mediante CH340 | PASS |
-| Respuesta del ESP8266 al comando `AT` | PASS |
-| Identificación mediante `AT+GMR` | PASS |
-| Firmware ESP-AT 2.3.0.0, perfil WROOM-02-N | PASS |
-| Búsqueda de redes inalámbricas mediante `AT+CWLAP` | PASS |
-| Comunicación USB → Mega → ESP8266 por `Serial3` | PASS |
-| Comunicación bidireccional entre Mega y ESP8266 | PASS |
-| Ejecución autónoma de comandos AT desde el Mega | PASS |
-| Consulta del modo WiFi mediante `AT+CWMODE?` | PASS |
-| Asociación autónoma a una red WiFi | NO ENSAYADA |
-| Servidor web controlado desde el Mega | NO ENSAYADO |
+| Programación del ATmega2560 con `Blink` | **PASS** |
+| Comunicación USB mediante CH340 | **PASS** |
+| Respuesta del ESP8266 a `AT` | **PASS** |
+| Identificación mediante `AT+GMR` | **PASS** — ESP-AT 2.3.0.0 (`WROOM-02-N`) |
+| Exploración de puntos de acceso con `AT+CWLAP` | **PASS** |
+| Puente USB → Mega → ESP8266 por `Serial3` | **PASS** — comandos y respuestas |
+| Envío autónomo desde el Mega por `Serial3` | **PASS** — `AT`, `AT+GMR`, `AT+CWMODE?` |
+| Asociación autónoma a una red WiFi | **NO ENSAYADO** |
+| Servidor web gestionado por el Mega | **NO ENSAYADO** |
 
-### 5. Validación de comunicación autónoma
+Los resultados corresponden a las pruebas de laboratorio efectuadas en la unidad evaluada. El registro de alcance y evidencias se encuentra en [docs/VALIDACION.md](docs/VALIDACION.md).
 
-Se desarrolló un sketch de prueba ejecutado en el ATmega2560 que envía automáticamente comandos al ESP8266 a través de `Serial3`.
+### 5. Comunicación autónoma entre microcontroladores
 
-La comunicación se configuró a **115200 baudios**.
+Para complementar la prueba de puente serie, se ejecutó un sketch en el **ATmega2560** capaz de **generar por sí mismo** los comandos de diagnóstico y transmitirlos al ESP8266 mediante **`Serial3` a 115200 baudios**, sin introducir los comandos manualmente desde el computador.
 
-Los comandos ejecutados fueron:
+Comandos enviados por el Mega:
 
 ```text
 AT
@@ -93,14 +71,12 @@ AT+GMR
 AT+CWMODE?
 ```
 
-Los resultados observados incluyeron:
+Fragmento representativo de las respuestas registradas:
 
 ```text
 MEGA ENVIA: AT
 AT
 OK
-
---- FIN RESPUESTA ---
 
 MEGA ENVIA: AT+GMR
 AT+GMR
@@ -108,243 +84,132 @@ AT version:2.3.0.0(2522d50 - ESP8266 - Aug 13 2025 08:41:04)
 SDK version:v3.4-112-gc965e03
 compile time(795c42d):Aug 14 2025 03:16:30
 Bin version:2.3.0(WROOM-02-N)
-
 OK
-
---- FIN RESPUESTA ---
 
 MEGA ENVIA: AT+CWMODE?
 AT+CWMODE?
 +CWMODE:1
-
 OK
-
---- FIN RESPUESTA ---
 
 PRUEBA FINALIZADA
 ```
 
-**Interpretación técnica:** el ATmega2560 generó comandos AT sin intervención manual, los transmitió al ESP8266 mediante UART y recibió respuestas válidas.
+Estos resultados confirman **transmisión y recepción de comandos AT entre ambos procesadores** en la configuración ensayada. La respuesta **`+CWMODE:1`** identifica el **modo estación**, pero **no acredita una asociación activa a una red WiFi**.
 
-La respuesta `+CWMODE:1` confirma que el ESP8266 se encontraba configurado en modo estación WiFi. No demuestra, por sí sola, que existiera una conexión activa a una red inalámbrica.
+### 6. Integridad y trazabilidad
 
-Este resultado constituye una validación adicional de la comunicación entre ambos microcontroladores después de actualizar el firmware.
+Los siguientes identificadores criptográficos corresponden a archivos conservados durante el procedimiento:
 
-El registro detallado de las verificaciones se encuentra en [docs/VALIDACION.md](docs/VALIDACION.md).
+| Artefacto | SHA-256 |
+|---|---|
+| Respaldo verificado del sketch puente `PUENTE_SERIAL3_VALIDADO.ino` | `716698717A8CC1935F62FA91EE1DE4135EF882BEC7136BD6DCA6D9F920CC4727` |
+| Imagen intermedia DIO/80 MHz `ESP_AT_2.3_MEGA_WIFI_CANDIDATO.bin` | `6898EC86335719D1E51BE83E45F234327277DA9A8634AFF4D4685E2E5202217F` |
+| **Imagen final DOUT/40 MHz** `ESP_AT_2.3_MEGA_WIFI_DOUT_40M.bin` | **`876C2FA5E777849E18DC2D8940DA639E7A205B88D7CFEFEBD2FDC1966BBCCF44`** |
 
-### 6. Integridad y procedencia
+**Imagen final:** 2.097.152 bytes (**2 MiB**); ESP-AT 2.3.0.0 oficial como base, perfil de parámetros UART **WROOM-02-N**, cabecera flash **DOUT a 40 MHz**.
 
-Los archivos utilizados durante las pruebas fueron identificados mediante huellas criptográficas SHA-256.
+La huella de la imagen final se obtuvo mediante cálculo SHA-256 sobre el archivo local utilizado para programar. **No equivale a una nueva lectura independiente de los 4 MiB completos de la memoria física posterior a la actualización.** La herramienta de escritura sí informó verificación satisfactoria de la grabación.
 
-#### Programa puente Serial3
+La huella de la imagen **intermedia DIO/80 MHz** no debe confundirse con la de la imagen final **DOUT/40 MHz**.
 
-- Archivo de respaldo: `PUENTE_SERIAL3_VALIDADO.ino`.
-- Algoritmo: SHA-256.
-- Huella verificada:
+**Protección de información:** el respaldo original completo de **4 MiB** no forma parte de este repositorio; tampoco se publican claves, credenciales WiFi ni datos privados del dispositivo.
 
-`716698717A8CC1935F62FA91EE1DE4135EF882BEC7136BD6DCA6D9F920CC4727`
+### 7. Procedencia y reconocimiento
 
-La comparación entre el programa original y su copia produjo el resultado `COINCIDEN: True`.
+El firmware original, los comandos AT y las herramientas de base son desarrollos de **Espressif Systems**:
 
-#### Imagen intermedia DIO a 80 MHz
+- [ESP-AT — repositorio oficial](https://github.com/espressif/esp-at)
+- [esptool — repositorio oficial](https://github.com/espressif/esptool)
 
-- Archivo: `ESP_AT_2.3_MEGA_WIFI_CANDIDATO.bin`.
-- Configuración de partida: DIO a 80 MHz.
-- SHA-256:
+**BIOSECHP no se atribuye la autoría del firmware ESP-AT ni de las herramientas originales.** La contribución documentada es la adaptación de configuración a un hardware concreto y su verificación experimental. Cualquier redistribución de componentes de terceros deberá respetar sus licencias correspondientes.
 
-`6898EC86335719D1E51BE83E45F234327277DA9A8634AFF4D4685E2E5202217F`
+### 8. Alcance y limitaciones de los resultados
 
-Esta huella corresponde a una imagen intermedia de preparación y **no identifica el binario definitivo grabado**.
+La actualización y las pruebas descritas fueron satisfactorias **en una sola unidad física**. La revisión exacta de la PCB no se ha identificado y no se ha demostrado que otras versiones comerciales utilicen el mismo cableado, parámetros de memoria o disposición de interruptores.
 
-#### Imagen final adaptada — DOUT a 40 MHz
+Las pruebas comprenden arranque, identificación del firmware, detección de redes, puente UART bidireccional y ejecución autónoma de comandos AT desde el ATmega2560. **No comprenden** una prueba de conexión autónoma a una red WiFi ni la puesta en funcionamiento de un servidor web administrado por el Mega.
 
-- Archivo: `ESP_AT_2.3_MEGA_WIFI_DOUT_40M.bin`.
-- Tamaño: **2.097.152 bytes (2 MiB)**.
-- Firmware base: Espressif ESP-AT 2.3.0.0.
-- Perfil de parámetros UART: `WROOM-02-N`.
-- Configuración de memoria flash: **DOUT, 40 MHz**.
-- Algoritmo de integridad: SHA-256.
+Estas delimitaciones permiten interpretar los resultados sin atribuirles un alcance mayor al demostrado.
 
-**Huella SHA-256 definitiva:**
+### 9. Alcance de la contribución y evolución técnica
 
-`876C2FA5E777849E18DC2D8940DA639E7A205B88D7CFEFEBD2FDC1966BBCCF44`
+Esta contribución de **BIOSECHP** presenta una **adaptación funcional y experimentalmente validada** de la configuración de ESP-AT 2.3.0.0 para la plataforma física evaluada. Su utilidad principal es aportar una referencia técnica trazable para comprender la compatibilidad entre el firmware oficial de Espressif y determinados diseños combinados Mega 2560 + ESP8266EX.
 
-**Nota de verificación:** esta huella identifica el archivo binario final utilizado durante la actualización y verificado mediante cálculo local. No constituye una nueva lectura de los 4 MiB completos de la memoria física del ESP8266.
-
-Durante el procedimiento de programación, la herramienta reportó la verificación satisfactoria de la escritura.
-
-El respaldo original completo de 4 MiB se conserva de manera independiente y **no se distribuye en este repositorio**.
-
-Tampoco se incorporan contraseñas, credenciales inalámbricas ni datos privados del dispositivo.
-
-### 7. Fuentes y atribución
-
-Este proyecto utiliza tecnología y herramientas desarrolladas por **Espressif Systems**.
-
-Repositorios oficiales:
-
-- [Espressif ESP-AT](https://github.com/espressif/esp-at)
-- [Espressif esptool](https://github.com/espressif/esptool)
-
-El código fuente, los binarios oficiales, las herramientas y las funcionalidades originales de ESP-AT pertenecen a sus respectivos autores y se encuentran sujetos a sus condiciones de licencia.
-
-**BIOSECHP no reclama autoría sobre el firmware ESP-AT original.**
-
-La contribución documentada corresponde al procedimiento de adaptación de configuración, la integración con el hardware evaluado y la validación experimental.
-
-### 8. Limitaciones
-
-La validación presenta las siguientes limitaciones:
-
-- Las pruebas se realizaron sobre una única tarjeta física.
-- La revisión exacta de la PCB no ha sido identificada.
-- No se ha demostrado compatibilidad con otras variantes comerciales.
-- No se ha realizado una prueba documentada de asociación autónoma a una red WiFi desde el ATmega2560.
-- No se ha validado todavía un servidor web controlado por el Mega.
-- La documentación de reconstrucción reproducible está pendiente de completar.
-
-Estas limitaciones se mantienen explícitas para evitar interpretaciones que excedan los resultados experimentales obtenidos.
-
-### 9. Próximos pasos antes de la publicación pública
-
-- Identificar la referencia y revisión exacta de la PCB.
-- Incorporar fotografías del hardware y de los interruptores DIP.
-- Documentar las configuraciones UART utilizadas.
-- Incorporar los comandos exactos y scripts reproducibles de adaptación.
-- Verificar la procedencia y las licencias de los archivos que eventualmente se distribuyan.
-- Completar la revisión de seguridad y privacidad.
-- Realizar una revisión final de la documentación en ambos idiomas.
+El proyecto puede ampliarse mediante documentación específica de revisiones de PCB, instrucciones automatizadas de reproducción y nuevas pruebas en otras variantes de hardware. Esas ampliaciones serían resultados independientes y **no alteran ni amplían retroactivamente** las verificaciones expuestas en este documento.
 
 ---
 
 ## English
 
-### Overview
+### 1. Overview
 
-This repository documents a **hardware-specific configuration adaptation** of Espressif's official **ESP-AT 2.3.0.0** firmware for an **Arduino Mega 2560 + WiFi ESP8266EX** combined board.
+This repository documents a **hardware-specific configuration adaptation of Espressif's official ESP-AT 2.3.0.0 firmware** for an **Arduino Mega 2560 + WiFi ESP8266EX** combined board, together with its observed bench-test results.
 
-It also documents the experimental verification procedures performed on one physical board.
+**No new ESP8266 firmware was developed, and the original ESP-AT functional code was not modified.** Official Espressif firmware and tools were used to adapt the UART configuration parameters and flash boot header. BIOSECHP's contribution is the documented hardware integration and experimental validation.
 
-**This project does not implement a new ESP8266 firmware.**
+### 2. Evaluated hardware
 
-The firmware foundation, original functionality and development tools originate from Espressif Systems.
+- Combined **ATmega2560 + ESP8266EX** board.
+- **CH340** USB-to-serial interface, enumerated as **COM16** on the test computer.
+- **4 MiB** SPI flash, marked **`25VQ32`**.
+- Eight DIP switches and a **`RXD0/TXD0` / `RXD3/TXD3`** UART selector.
+- Original AT firmware reported by `AT+GMR`: **version 1.1.0.0**.
 
-BIOSECHP's contribution consists of documenting the hardware-specific configuration adaptation, the integration procedure, integrity verification and observed experimental results.
+The exact PCB revision has **not** been identified. Accordingly, compatibility with other hardware variants is **not established**.
 
-### Hardware
+### 3. Configuration adaptation
 
-The tested system included:
+Before programming, the complete **4 MiB** original flash contents were backed up and verified against the device using `esptool verify-flash`.
 
-- ATmega2560 microcontroller.
-- ESP8266EX WiFi microcontroller.
-- CH340 USB-to-serial converter.
-- 4 MiB SPI flash memory, marked `25VQ32`.
-- Eight-position DIP switch bank.
-- UART selector with `RXD0/TXD0` and `RXD3/TXD3` positions.
+The official ESP-AT **2.3.0.0** factory image was adapted using Espressif tools, including those in the **`release/v2.3.0.0_esp8266`** branch. The **`WROOM-02-N`** factory parameters specify **UART TX GPIO1**, **UART RX GPIO3**, with **CTS/RTS hardware flow control disabled**. The **4,096-byte** parameter block was inserted at **`0xF1000`** in a copy of the official **2 MiB** factory image. Its boot header was prepared for **DOUT at 40 MHz**.
 
-The original ESP8266 firmware reported AT version 1.1.0.0.
+The resulting image was written from flash offset **`0x0`**, and the programming tool reported successful write verification. Subsequent tests verified boot and AT command operation.
 
-The exact PCB revision remains unidentified.
+**Compatibility warning:** These actions were validated on one tested board only. Do not flash an image onto another revision without confirming its PCB, UART wiring, flash capacity, boot settings, and the availability of a verified recovery backup.
 
-### Firmware adaptation
-
-A complete 4 MiB backup of the original ESP8266 flash was created and verified against the physical device before the upgrade.
-
-The official ESP-AT 2.3.0.0 image was adapted using the `WROOM-02-N` UART configuration:
-
-- TX: GPIO1.
-- RX: GPIO3.
-- Hardware flow control disabled.
-
-The corresponding 4096-byte configuration parameter block was incorporated into a copy of the official factory image.
-
-The final image was prepared with a **DOUT, 40 MHz** flash boot-header configuration.
-
-The adapted firmware was programmed and subsequently tested on the target board.
-
-### Experimental validation
+### 4. Experimental results
 
 | Test | Result |
 |---|---|
-| ATmega2560 programming | PASS |
-| USB communication through CH340 | PASS |
-| ESP8266 AT response | PASS |
-| ESP-AT 2.3.0.0 identification | PASS |
-| WiFi access-point scanning | PASS |
-| Bidirectional Mega-to-ESP8266 Serial3 communication | PASS |
-| Autonomous AT command transmission from ATmega2560 | PASS |
-| WiFi station-mode query | PASS |
-| Autonomous WiFi association | NOT TESTED |
-| Browser-based web server | NOT TESTED |
+| ATmega2560 `Blink` programming | **PASS** |
+| CH340 USB serial communication | **PASS** |
+| `AT` response | **PASS** |
+| `AT+GMR` firmware identification | **PASS** — ESP-AT 2.3.0.0 (`WROOM-02-N`) |
+| `AT+CWLAP` access-point scan | **PASS** |
+| USB-to-Mega-to-ESP bridge using `Serial3` | **PASS** |
+| Autonomous AT commands sent by ATmega2560 using `Serial3` | **PASS** |
+| Autonomous WiFi association | **NOT TESTED** |
+| Mega-controlled web server | **NOT TESTED** |
 
-### Autonomous UART validation
+For the autonomous UART test, the Mega sent **`AT`**, **`AT+GMR`**, and **`AT+CWMODE?`** over **`Serial3` at 115200 baud**, and the ESP8266 returned valid responses. **`+CWMODE:1`** confirms station-mode configuration; it does **not** confirm an active WiFi association.
 
-A dedicated sketch running on the ATmega2560 automatically transmitted the following commands to the ESP8266 over `Serial3` at 115200 baud:
+The Spanish test record is available in [docs/VALIDACION.md](docs/VALIDACION.md).
 
-```text
-AT
-AT+GMR
-AT+CWMODE?
-```
+### 5. Firmware integrity
 
-The ESP8266 returned valid responses, including:
-
-```text
-AT version:2.3.0.0
-Bin version:2.3.0(WROOM-02-N)
-+CWMODE:1
-OK
-```
-
-This demonstrates autonomous AT command transmission and response reception between the ATmega2560 and the ESP8266.
-
-The `+CWMODE:1` result confirms station-mode configuration, not an active WiFi connection.
-
-### Final firmware image integrity
-
-**File:** `ESP_AT_2.3_MEGA_WIFI_DOUT_40M.bin`
-
-**Size:** 2,097,152 bytes (2 MiB)
-
-**Flash configuration:** DOUT, 40 MHz
-
+**Final adapted image:** `ESP_AT_2.3_MEGA_WIFI_DOUT_40M.bin`  
+**File size:** 2,097,152 bytes (2 MiB)  
+**Configuration:** ESP-AT 2.3.0.0, UART `WROOM-02-N`, flash **DOUT/40 MHz**  
 **SHA-256:**
 
 `876C2FA5E777849E18DC2D8940DA639E7A205B88D7CFEFEBD2FDC1966BBCCF44`
 
-This hash identifies the locally verified final firmware file used during the upgrade. It does not represent a separate post-flashing readback of the full 4 MiB device memory.
+This hash identifies the **locally verified final binary file** used in the upgrade. It is **not** a separate full-device **4 MiB post-flash readback**. The flashing tool reported successful write verification.
 
-### Attribution
+The original complete flash backup, WiFi credentials and private device data are **not distributed**.
 
-Original firmware and tools:
+### 6. Attribution and technical scope
 
-- [Espressif ESP-AT](https://github.com/espressif/esp-at)
-- [Espressif esptool](https://github.com/espressif/esptool)
+Upstream firmware and tools are provided by **Espressif Systems**:
 
-**BIOSECHP documents the tested configuration adaptation and integration procedure, not the original Espressif firmware implementation.**
+- [ESP-AT](https://github.com/espressif/esp-at)
+- [esptool](https://github.com/espressif/esptool)
 
-All upstream components remain subject to their respective licenses.
+**BIOSECHP does not claim authorship of the original ESP-AT firmware.** This contribution records a tested configuration adaptation, hardware integration, and experimental results. Applicable upstream licenses must be respected in any future redistribution.
 
-### Safety and compatibility
-
-The described adaptation has been tested on one physical board.
-
-**Do not flash the image to an unverified hardware revision.**
-
-Identify the target hardware, verify memory configuration, inspect UART connections and create a verified device backup before programming.
-
-No original full-device backup, network credentials or private device data are distributed in this repository.
-
-### Documentation status
-
-This repository remains under technical preparation.
-
-The documented bench tests were successful within their stated scope. Complete reproduction instructions, exact board identification and cross-board compatibility testing remain future work.
-
-Detailed Spanish validation records: [docs/VALIDACION.md](docs/VALIDACION.md).
+The present report establishes successful operation **on one physical board only**; it is not a universal compatibility certification. Additional PCB identification, reproducible scripts, and validation of other hardware revisions may extend the project in the future, without changing the scope of these completed tests.
 
 ---
 
-**BIOSECHP — Engineering, Embedded Systems, Hardware Integration and Technical Validation**
-
-*Technical documentation — November 15, 2026.*
+**BIOSECHP — Embedded Systems, Hardware Integration and Technical Validation**  
+*Technical validation record — November 15, 2026.*
