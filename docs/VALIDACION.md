@@ -73,12 +73,22 @@ PRUEBA FINALIZADA
 
 - Respaldo integral original ESP8266 (4 MiB): conservado fuera del repositorio público. Fue verificado mediante lectura/comparación con `esptool`.
 - Programa puente `PUENTE_SERIAL3_VALIDADO.ino`: SHA-256 `716698717A8CC1935F62FA91EE1DE4135EF882BEC7136BD6DCA6D9F920CC4727`; original y copia coinciden.
-- Ubicación local del programa puente: `D:\RESPALDOS_ARDUINO\MEGA_WIFI_ESP8266\PRUEBAS\PUENTE_SERIAL3_VALIDADO\PUENTE_SERIAL3_VALIDADO.ino`.
-- Programa autónomo reportado en disco D: (1656 bytes) y compilado exitosamente. Falta calcular su hash SHA-256 si se incluirá en el manifiesto de publicación.
+- Archivo del puente en este repositorio: [`examples/PUENTE_SERIAL3_VALIDADO/PUENTE_SERIAL3_VALIDADO.ino`](../examples/PUENTE_SERIAL3_VALIDADO/PUENTE_SERIAL3_VALIDADO.ino).
+- Programa autónomo [`BIOSECHP_MEGA_ESP8266_AUTONOMO.ino`](../examples/BIOSECHP_MEGA_ESP8266_AUTONOMO/BIOSECHP_MEGA_ESP8266_AUTONOMO.ino): **1.656 bytes**; SHA-256 `28ED72F92D238ED3E9F60BC4677D1A5B977B4AC8C881908D07174C06C02668D2`, calculado sobre la copia incluida en el repositorio y contrastado con la huella registrada por el operador.
+- Imagen de firmware **DOUT/40 MHz** utilizada en la actualización (2.097.152 bytes): SHA-256 `876C2FA5E777849E18DC2D8940DA639E7A205B88D7CFEFEBD2FDC1966BBCCF44`, calculado sobre el archivo local según el registro de la sesión. **No** se interpreta como lectura posterior de toda la memoria del dispositivo. Véase [`PROCEDIMIENTO_REPRODUCIBLE.md`](PROCEDIMIENTO_REPRODUCIBLE.md).
 
-## Pendientes de publicación
+## Evidencia fotográfica incorporada
 
-1. Registrar fotografías y revisión física de la PCB.
-2. Validar permisos/licencias y scripts antes de publicar binarios o cambios de parámetros.
-3. Comprobar que los registros y fotografías no contengan contraseñas ni identificadores privados.
-4. Conservar el historial de pruebas y cualquier condición de hardware específica; no generalizar compatibilidad a todas las placas Mega + WiFi.
+Las cuatro imágenes de la unidad ensayada están incorporadas en [`hardware/images/`](../hardware/images/) y se describen en [`hardware/README.md`](../hardware/README.md): cara superior, cara inferior, detalle ESP8266/memoria SPI y detalle ATmega2560. Sus huellas están registradas en [`hardware/IMAGES_SHA256.txt`](../hardware/IMAGES_SHA256.txt). La evidencia identifica componentes, pero **no confirma el fabricante ni la revisión exacta de la PCB**.
+
+## Límites del resultado de la prueba autónoma
+
+El mensaje `PRUEBA FINALIZADA` se imprime al terminar la secuencia del sketch; **no** significa que el programa haya evaluado automáticamente todas las respuestas. El dictamen PASS de esta sesión se basa en las respuestas `OK`, versión y modo estación efectivamente observados en el Monitor Serie. No demuestra asociación WiFi ni servidor web.
+
+## Aspectos pendientes antes de una publicación pública o reproducción independiente
+
+1. Identificar fabricante y revisión física de la PCB, y validar una matriz DIP/selector para la revisión concreta.
+2. Revisar la titularidad y las licencias de código, documentación, fotografías y componentes de terceros antes de conceder permisos públicos o redistribuir binarios.
+3. Revisar los materiales para descartar credenciales, identificadores privados y otros datos sensibles antes de hacer público el repositorio.
+4. Completar y repetir independientemente los argumentos de generación de parámetros y construcción de la imagen; conservar las advertencias de compatibilidad documentadas en [`PROCEDIMIENTO_REPRODUCIBLE.md`](PROCEDIMIENTO_REPRODUCIBLE.md).
+5. No generalizar la compatibilidad a todas las placas Mega + WiFi; las pruebas descritas corresponden a **una unidad física**.
