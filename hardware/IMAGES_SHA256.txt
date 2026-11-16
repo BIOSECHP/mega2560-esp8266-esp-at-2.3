@@ -1,0 +1,5 @@
+# SHA-256 de las fotografías suministradas / image file checksums
+2d2b0e72365f5df18285742c222f9061f116062eeba08f473e60e5e61c3cc81e  atmega2560_detail.jpg
+621557f87542bc85303136bf92254d345bce5bdc7e1eeca0a5878017c92385e7  board_back.jpg
+88bbffcf640576f318386243e4f809021cf1ca927e0de84607780924656441e4  board_front.jpg
+43d3b4c3a79ff32dc0448ca39e48d1dbb8b491137c3e605a14679cb6f581316f  esp8266_flash_detail.jpg
